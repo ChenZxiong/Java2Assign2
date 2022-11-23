@@ -1,3 +1,9 @@
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.Socket;
+import java.net.URL;
+import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.layout.Pane;
@@ -6,40 +12,32 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.net.Socket;
-import java.net.URL;
-import java.util.ResourceBundle;
-
 public class Controller implements Initializable {
-    public Socket socket;
-    public DataInputStream dataInputStream;
+  public Socket socket;
+  public DataInputStream dataInputStream;
+  public PrintStream printStream;
+  private static final int PLAY_1 = 1;
+  private static final int PLAY_2 = 2;
+  private static final int EMPTY = 0;
+  private static final int BOUND = 90;
+  private static final int OFFSET = 15;
+  @FXML
+  private Pane base_square;
+  @FXML
+  private Rectangle game_panel;
+  private static boolean TURN = false;
+  public boolean my_turn = false;
+  private static final int[][] chessBoard = new int[3][3];
+  private static final boolean[][] flag = new boolean[3][3];
 
-    public PrintStream printStream;
-    private static final int PLAY_1 = 1;
-    private static final int PLAY_2 = 2;
-    private static final int EMPTY = 0;
-    private static final int BOUND = 90;
-    private static final int OFFSET = 15;
-    @FXML
-    private Pane base_square;
-    @FXML
-    private Rectangle game_panel;
-    private static boolean TURN = false;
-    public boolean my_turn = false;
-    private static final int[][] chessBoard = new int[3][3];
-    private static final boolean[][] flag = new boolean[3][3];
-
-    public void setSocket(Socket socket) throws IOException {
+  public void setSocket(Socket socket) throws IOException {
         this.socket = socket;
         this.dataInputStream = new DataInputStream(socket.getInputStream());
         this.printStream = new PrintStream(socket.getOutputStream());
-    }
+  }
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+  @Override
+  public void initialize(URL location, ResourceBundle resources) {
         game_panel.setOnMouseClicked(event -> {
             int x = (int) (event.getX() / BOUND);
             int y = (int) (event.getY() / BOUND);
@@ -50,18 +48,17 @@ public class Controller implements Initializable {
                 TURN = !TURN;
             }
         });
-    }
+  }
 
-    private boolean refreshBoard(int x, int y) {
+  private boolean refreshBoard(int x, int y) {
         if (chessBoard[x][y] == EMPTY) {
             chessBoard[x][y] = TURN ? PLAY_1 : PLAY_2;
             drawChess();
             return true;
         }
         return false;
-    }
-
-    private void drawChess() {
+  }
+  private void drawChess() {
         for (int i = 0; i < chessBoard.length; i++) {
             for (int j = 0; j < chessBoard[0].length; j++) {
                 if (flag[i][j]) {
@@ -83,9 +80,9 @@ public class Controller implements Initializable {
                 }
             }
         }
-    }
+  }
 
-    private void drawCircle(int i, int j) {
+  private void drawCircle(int i, int j) {
         Circle circle = new Circle();
         base_square.getChildren().add(circle);
         circle.setCenterX(i * BOUND + BOUND / 2.0 + OFFSET);
@@ -94,9 +91,9 @@ public class Controller implements Initializable {
         circle.setStroke(Color.RED);
         circle.setFill(Color.TRANSPARENT);
         flag[i][j] = true;
-    }
+  }
 
-    private void drawLine(int i, int j) {
+  private void drawLine(int i, int j) {
         Line line_a = new Line();
         Line line_b = new Line();
         base_square.getChildren().add(line_a);
@@ -113,9 +110,9 @@ public class Controller implements Initializable {
         line_b.setEndY((j + 1) * BOUND + OFFSET * 0.5);
         line_b.setStroke(Color.BLUE);
         flag[i][j] = true;
-    }
+  }
 
-    private boolean gameState(int x, int y) {
+  private boolean gameState(int x, int y) {
         int temp = chessBoard[x][y];
         for (int i = 0; i < 3; i++) {
             if (chessBoard[i][0] == temp) {
